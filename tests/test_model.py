@@ -19,22 +19,24 @@ from src.train import get_models
 def tiny_df():
     rng = np.random.default_rng(0)
     n = 60
-    df = pd.DataFrame({
-        "age":      rng.integers(30, 80, n).astype(float),
-        "sex":      rng.integers(0, 2, n),
-        "cp":       rng.integers(0, 4, n),
-        "trestbps": rng.integers(90, 200, n).astype(float),
-        "chol":     rng.integers(150, 400, n).astype(float),
-        "fbs":      rng.integers(0, 2, n),
-        "restecg":  rng.integers(0, 3, n),
-        "thalach":  rng.integers(70, 200, n).astype(float),
-        "exang":    rng.integers(0, 2, n),
-        "oldpeak":  rng.uniform(0, 6, n),
-        "slope":    rng.integers(0, 3, n),
-        "ca":       rng.integers(0, 5, n),
-        "thal":     rng.integers(0, 4, n),
-        "target":   rng.integers(0, 2, n),
-    })
+    df = pd.DataFrame(
+        {
+            "age": rng.integers(30, 80, n).astype(float),
+            "sex": rng.integers(0, 2, n),
+            "cp": rng.integers(0, 4, n),
+            "trestbps": rng.integers(90, 200, n).astype(float),
+            "chol": rng.integers(150, 400, n).astype(float),
+            "fbs": rng.integers(0, 2, n),
+            "restecg": rng.integers(0, 3, n),
+            "thalach": rng.integers(70, 200, n).astype(float),
+            "exang": rng.integers(0, 2, n),
+            "oldpeak": rng.uniform(0, 6, n),
+            "slope": rng.integers(0, 3, n),
+            "ca": rng.integers(0, 5, n),
+            "thal": rng.integers(0, 4, n),
+            "target": rng.integers(0, 2, n),
+        }
+    )
     return df
 
 
@@ -59,10 +61,12 @@ class TestModels:
     def test_fit_predict(self, tiny_df, name, estimator):
         X, y = split_features_target(tiny_df)
         preprocessor = build_preprocessor()
-        pipeline = Pipeline([
-            ("preprocessor", preprocessor),
-            ("classifier", estimator),
-        ])
+        pipeline = Pipeline(
+            [
+                ("preprocessor", preprocessor),
+                ("classifier", estimator),
+            ]
+        )
         pipeline.fit(X, y)
         preds = pipeline.predict(X)
         probs = pipeline.predict_proba(X)

@@ -13,8 +13,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from src.data_preprocessing import load_data, get_train_test
 
 from sklearn.metrics import (
-    classification_report, confusion_matrix,
-    roc_auc_score, average_precision_score
+    classification_report,
+    confusion_matrix,
+    roc_auc_score,
+    average_precision_score,
 )
 
 
@@ -23,14 +25,17 @@ def evaluate(data_path: str, model_path: str):
     _, X_test, _, y_test = get_train_test(df)
 
     model = joblib.load(model_path)
-    y_pred      = model.predict(X_test)
+    y_pred = model.predict(X_test)
     y_pred_prob = model.predict_proba(X_test)[:, 1]
 
     print("=" * 60)
     print("Classification Report")
     print("=" * 60)
-    print(classification_report(y_test, y_pred,
-                                 target_names=["No Disease", "Heart Disease"]))
+    print(
+        classification_report(
+            y_test, y_pred, target_names=["No Disease", "Heart Disease"]
+        )
+    )
 
     print("\nConfusion Matrix")
     print(confusion_matrix(y_test, y_pred))
@@ -41,7 +46,7 @@ def evaluate(data_path: str, model_path: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data",  default="data/heart.csv")
+    parser.add_argument("--data", default="data/heart.csv")
     parser.add_argument("--model", default="models/best_model.pkl")
     args = parser.parse_args()
     evaluate(args.data, args.model)

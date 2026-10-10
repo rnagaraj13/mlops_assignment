@@ -16,9 +16,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 SAMPLE_PATIENT = {
-    "age": 54, "sex": 1, "cp": 0, "trestbps": 122,
-    "chol": 286, "fbs": 0, "restecg": 0, "thalach": 116,
-    "exang": 1, "oldpeak": 3.2, "slope": 1, "ca": 2, "thal": 2
+    "age": 54,
+    "sex": 1,
+    "cp": 0,
+    "trestbps": 122,
+    "chol": 286,
+    "fbs": 0,
+    "restecg": 0,
+    "thalach": 116,
+    "exang": 1,
+    "oldpeak": 3.2,
+    "slope": 1,
+    "ca": 2,
+    "thal": 2,
 }
 
 
@@ -36,6 +46,7 @@ def client(mock_model):
     """Provide a TestClient with the model monkeypatched."""
     with patch("api.app.get_model", return_value=mock_model):
         from api.app import app
+
         with TestClient(app) as c:
             yield c
 
@@ -65,7 +76,7 @@ class TestPredictEndpoint:
     def test_predict_missing_field(self, client):
         incomplete = {k: v for k, v in SAMPLE_PATIENT.items() if k != "age"}
         resp = client.post("/predict", json=incomplete)
-        assert resp.status_code == 422   # Unprocessable Entity
+        assert resp.status_code == 422  # Unprocessable Entity
 
     def test_predict_invalid_range(self, client):
         bad = dict(SAMPLE_PATIENT)
@@ -78,7 +89,9 @@ class TestBatchEndpoint:
     def test_batch_predict(self, client, mock_model):
         mock_model.predict.return_value = np.array([1, 0])
         mock_model.predict_proba.return_value = np.array([[0.2, 0.8], [0.7, 0.3]])
-        resp = client.post("/predict/batch", json={"patients": [SAMPLE_PATIENT, SAMPLE_PATIENT]})
+        resp = client.post(
+            "/predict/batch", json={"patients": [SAMPLE_PATIENT, SAMPLE_PATIENT]}
+        )
         assert resp.status_code == 200
         body = resp.json()
         assert len(body["predictions"]) == 2

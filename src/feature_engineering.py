@@ -7,7 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.pipeline import Pipeline
 
-NUMERICAL_COLS  = ["age", "trestbps", "chol", "thalach", "oldpeak"]
+NUMERICAL_COLS = ["age", "trestbps", "chol", "thalach", "oldpeak"]
 CATEGORICAL_COLS = ["sex", "cp", "fbs", "restecg", "exang", "slope", "ca", "thal"]
 
 FEATURE_COLS = NUMERICAL_COLS + CATEGORICAL_COLS
@@ -21,7 +21,9 @@ def build_preprocessor():
     Returns an unfitted sklearn transformer.
     """
     numerical_transformer = StandardScaler()
-    categorical_transformer = OneHotEncoder(handle_unknown="ignore", drop="first", sparse_output=False)
+    categorical_transformer = OneHotEncoder(
+        handle_unknown="ignore", drop="first", sparse_output=False
+    )
 
     preprocessor = ColumnTransformer(
         transformers=[

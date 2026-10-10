@@ -11,8 +11,12 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.data_preprocessing import (
-    split_features_target, get_train_test,
-    FEATURE_COLS, TARGET_COL, NUMERICAL_COLS, CATEGORICAL_COLS
+    split_features_target,
+    get_train_test,
+    FEATURE_COLS,
+    TARGET_COL,
+    NUMERICAL_COLS,
+    CATEGORICAL_COLS,
 )
 
 
@@ -21,22 +25,24 @@ def sample_df():
     """Small synthetic DataFrame mimicking the heart dataset."""
     rng = np.random.default_rng(42)
     n = 100
-    df = pd.DataFrame({
-        "age":      rng.integers(30, 80, n).astype(float),
-        "sex":      rng.integers(0, 2, n),
-        "cp":       rng.integers(0, 4, n),
-        "trestbps": rng.integers(90, 200, n).astype(float),
-        "chol":     rng.integers(150, 400, n).astype(float),
-        "fbs":      rng.integers(0, 2, n),
-        "restecg":  rng.integers(0, 3, n),
-        "thalach":  rng.integers(70, 200, n).astype(float),
-        "exang":    rng.integers(0, 2, n),
-        "oldpeak":  rng.uniform(0, 6, n),
-        "slope":    rng.integers(0, 3, n),
-        "ca":       rng.integers(0, 5, n),
-        "thal":     rng.integers(0, 4, n),
-        "target":   rng.integers(0, 2, n),
-    })
+    df = pd.DataFrame(
+        {
+            "age": rng.integers(30, 80, n).astype(float),
+            "sex": rng.integers(0, 2, n),
+            "cp": rng.integers(0, 4, n),
+            "trestbps": rng.integers(90, 200, n).astype(float),
+            "chol": rng.integers(150, 400, n).astype(float),
+            "fbs": rng.integers(0, 2, n),
+            "restecg": rng.integers(0, 3, n),
+            "thalach": rng.integers(70, 200, n).astype(float),
+            "exang": rng.integers(0, 2, n),
+            "oldpeak": rng.uniform(0, 6, n),
+            "slope": rng.integers(0, 3, n),
+            "ca": rng.integers(0, 5, n),
+            "thal": rng.integers(0, 4, n),
+            "target": rng.integers(0, 2, n),
+        }
+    )
     return df
 
 
@@ -69,7 +75,7 @@ class TestTrainTestSplit:
     def test_stratified(self, sample_df):
         _, _, y_train, y_test = get_train_test(sample_df)
         train_rate = y_train.mean()
-        test_rate  = y_test.mean()
+        test_rate = y_test.mean()
         # Allow up to 15 % difference due to small n
         assert abs(train_rate - test_rate) < 0.15
 
