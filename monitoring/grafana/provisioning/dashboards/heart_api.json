@@ -1,0 +1,95 @@
+{
+  "title": "Heart Disease API Dashboard",
+  "uid": "heart-api-001",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total Requests",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {
+          "expr": "heart_api_requests_total",
+          "legendFormat": "Total"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Successful Predictions",
+      "type": "stat",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {
+          "expr": "heart_api_requests_success_total",
+          "legendFormat": "Success"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Error Rate",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {
+          "expr": "rate(heart_api_requests_error_total[5m])",
+          "legendFormat": "Errors/sec"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Average Latency (s)",
+      "type": "gauge",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {
+          "expr": "heart_api_avg_latency_seconds",
+          "legendFormat": "Avg Latency"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "thresholds": {
+          "steps": [
+            {"color": "green", "value": 0},
+            {"color": "yellow", "value": 0.5},
+            {"color": "red", "value": 1.0}
+          ]
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Prediction Distribution",
+      "type": "piechart",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "heart_api_predictions_positive_total",
+          "legendFormat": "Heart Disease"
+        },
+        {
+          "expr": "heart_api_predictions_negative_total",
+          "legendFormat": "No Disease"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Request Rate Over Time",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "rate(heart_api_requests_total[1m])",
+          "legendFormat": "Requests/sec"
+        }
+      ]
+    }
+  ]
+}

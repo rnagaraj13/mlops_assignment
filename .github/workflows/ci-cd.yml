@@ -1,0 +1,229 @@
+name: Heart Disease MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE_NAME: heart-disease-api
+  REGISTRY: ghcr.io
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  # ── Job 1: Lint & Static Analysis ─────────────────────────────────────────
+  lint:
+    name: Lint & Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install linting tools
+        run: pip install flake8 black isort mypy
+
+      - name: Run Black (formatting check)
+        run: black --check --diff src/ api/ tests/
+
+      - name: Run isort (import ordering check)
+        run: isort --check-only --diff src/ api/ tests/
+
+      - name: Run Flake8 (style & errors)
+        run: flake8 src/ api/ tests/ --max-line-length=100 --ignore=E203,W503
+
+  # ── Job 2: Unit Tests ──────────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pytest with coverage
+        run: |
+          pytest tests/ -v \
+            --cov=src --cov=api \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --junitxml=test-results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ── Job 3: Model Training ──────────────────────────────────────────────────
+  train:
+    name: Model Training
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download dataset
+        run: python data/download_data.py
+
+      - name: Train models
+        run: python src/train.py --data data/heart.csv --experiment ci-heart-disease
+
+      - name: Evaluate best model
+        run: python src/evaluate.py --data data/heart.csv --model models/best_model.pkl
+
+      - name: Upload trained model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+          retention-days: 30
+
+  # ── Job 4: Docker Build & Push ─────────────────────────────────────────────
+  build-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: train
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Test Docker container
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker run -d --name test-api -p 8000:8000 \
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          sleep 10
+          curl -f http://localhost:8000/health || (docker logs test-api && exit 1)
+          docker stop test-api && docker rm test-api
+
+  # ── Job 5: Deploy to Kubernetes (Minikube in CI – no external cluster needed) ─
+  deploy:
+    name: Deploy to Kubernetes (Minikube)
+    runs-on: ubuntu-latest
+    needs: build-push
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Download the trained model artifact ─────────────────────────────────
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+
+      # ── Start Minikube on the GitHub Actions runner (no cluster required) ───
+      - name: Start Minikube
+        uses: medyagh/setup-minikube@master
+        with:
+          minikube-version: 1.33.0
+          kubernetes-version: v1.30.0
+          driver: docker
+
+      # ── Load the locally-built Docker image into Minikube ───────────────────
+      - name: Load Docker image into Minikube
+        run: |
+          docker build -t heart-disease-api:latest .
+          minikube image load heart-disease-api:latest
+
+      # ── Patch deployment to use the local image (no registry pull needed) ───
+      - name: Patch deployment manifest for local image
+        run: |
+          sed -i "s|image: ghcr.io/OWNER/heart-disease-api:IMAGE_TAG_PLACEHOLDER|image: heart-disease-api:latest|g" k8s/deployment.yaml
+          sed -i "s|imagePullPolicy: Always|imagePullPolicy: Never|g"            k8s/deployment.yaml
+          # Remove PVC dependency (not needed for CI smoke test)
+          sed -i "/persistentVolumeClaim/,+1d" k8s/deployment.yaml
+          sed -i "/volumeMounts/,+3d"          k8s/deployment.yaml
+          sed -i "/volumes:/,+3d"              k8s/deployment.yaml
+
+      # ── Apply manifests ──────────────────────────────────────────────────────
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+
+      # ── Wait for pods to become Ready ────────────────────────────────────────
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/heart-disease-api \
+            -n heart-mlops --timeout=3m
+
+      # ── Smoke-test the running pod ───────────────────────────────────────────
+      - name: Smoke-test API via kubectl port-forward
+        run: |
+          kubectl port-forward svc/heart-disease-api-svc 8080:80 \
+            -n heart-mlops &
+          sleep 5
+          curl -f http://localhost:8080/health
+          curl -f -X POST http://localhost:8080/predict \
+            -H "Content-Type: application/json" \
+            -d '{"age":54,"sex":1,"cp":0,"trestbps":122,"chol":286,"fbs":0,"restecg":0,"thalach":116,"exang":1,"oldpeak":3.2,"slope":1,"ca":2,"thal":2}'
+
+      # ── Print cluster state (good for assignment screenshots) ────────────────
+      - name: Show cluster state
+        run: |
+          echo "=== Pods ==="
+          kubectl get pods -n heart-mlops -o wide
+          echo "=== Services ==="
+          kubectl get svc  -n heart-mlops
+          echo "=== Deployment ==="
+          kubectl describe deployment heart-disease-api -n heart-mlops

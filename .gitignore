@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ML artefacts (committed separately or via CI)
+models/*.pkl
+mlruns/
+mlflow.db
+
+# Data (download via script)
+data/heart.csv
+data/heart_raw.csv
+
+# Test / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+test-results.xml
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Screenshots (add manually)
+screenshots/
