@@ -18,24 +18,26 @@ import matplotlib
 import mlflow
 import mlflow.sklearn
 import numpy as np
-import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (ConfusionMatrixDisplay, RocCurveDisplay,
-                             accuracy_score, f1_score, precision_score,
-                             recall_score, roc_auc_score)
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    RocCurveDisplay,
+    accuracy_score,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.pipeline import Pipeline
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from src.data_preprocessing import (FEATURE_COLS, TARGET_COL, get_train_test,
-                                    load_data)
-from src.feature_engineering import FEATURE_COLS as FE_FEATURES
-from src.feature_engineering import (add_interaction_features,
-                                     build_preprocessor)
+from src.data_preprocessing import FEATURE_COLS, get_train_test, load_data
+from src.feature_engineering import build_preprocessor
 
 MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
 PLOT_DIR = os.path.join(

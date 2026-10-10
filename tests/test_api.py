@@ -2,19 +2,11 @@
 Integration tests for the FastAPI app (uses TestClient – no real model needed).
 """
 
-import json
-import os
-import sys
 from unittest.mock import MagicMock, patch
 
-import joblib
 import numpy as np
-import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
 
 SAMPLE_PATIENT = {
     "age": 54,

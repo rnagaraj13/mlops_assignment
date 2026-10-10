@@ -2,15 +2,11 @@
 Unit tests for model training pipeline.
 """
 
-import os
-import sys
-
 import numpy as np
 import pandas as pd
 import pytest
 from sklearn.pipeline import Pipeline
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.data_preprocessing import FEATURE_COLS, split_features_target
 from src.feature_engineering import build_preprocessor
 from src.train import get_models

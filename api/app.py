@@ -7,15 +7,13 @@ Endpoints:
   POST /predict       – predict from JSON input, returns prediction + confidence
 """
 
-import json
 import logging
 import os
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import joblib
-import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import PlainTextResponse

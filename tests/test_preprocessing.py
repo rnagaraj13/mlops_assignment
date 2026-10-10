@@ -3,17 +3,18 @@ Unit tests for data preprocessing utilities.
 Run: pytest tests/ -v
 """
 
-import os
-import sys
-
 import numpy as np
 import pandas as pd
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from src.data_preprocessing import (CATEGORICAL_COLS, FEATURE_COLS,
-                                    NUMERICAL_COLS, TARGET_COL, get_train_test,
-                                    split_features_target)
+from src.data_preprocessing import (
+    CATEGORICAL_COLS,
+    FEATURE_COLS,
+    NUMERICAL_COLS,
+    TARGET_COL,
+    get_train_test,
+    split_features_target,
+)
 
 
 @pytest.fixture
