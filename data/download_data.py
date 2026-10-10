@@ -5,16 +5,26 @@ Usage: python download_data.py
 
 import os
 import urllib.request
+
 import pandas as pd
 
-DATASET_URL = (
-    "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
-)
+DATASET_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
 
 COLUMNS = [
-    "age", "sex", "cp", "trestbps", "chol", "fbs",
-    "restecg", "thalach", "exang", "oldpeak", "slope",
-    "ca", "thal", "target"
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal",
+    "target",
 ]
 
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "heart.csv")
