@@ -2,23 +2,17 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-.eggs/
-dist/
-build/
 .venv/
 venv/
-env/
 
 # Jupyter
 .ipynb_checkpoints/
 
-# ML artefacts (committed separately or via CI)
-models/*.pkl
+# ML artefacts
 mlruns/
 mlflow.db
 
 # Data (download via script)
-data/heart.csv
 data/heart_raw.csv
 
 # Test / coverage
@@ -37,8 +31,5 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Docker
-.dockerignore
-
-# Screenshots (add manually)
+# Screenshots
 screenshots/
