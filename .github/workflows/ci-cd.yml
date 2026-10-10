@@ -26,7 +26,7 @@ jobs:
           cache: pip
 
       - name: Install linting tools
-        run: pip install flake8 black isort mypy
+        run: pip install flake8==7.4.1 black==26.10.1 isort==9.0.2 mypy==2.4.0
 
       - name: Run Black (formatting check)
         run: black --check --diff src/ api/ tests/
