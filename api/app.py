@@ -7,10 +7,10 @@ Endpoints:
   POST /predict       – predict from JSON input, returns prediction + confidence
 """
 
+import json
+import logging
 import os
 import time
-import logging
-import json
 from pathlib import Path
 from typing import List, Optional
 

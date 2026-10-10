@@ -4,8 +4,8 @@ Feature engineering helpers for Heart Disease dataset.
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 NUMERICAL_COLS = ["age", "trestbps", "chol", "thalach", "oldpeak"]
 CATEGORICAL_COLS = ["sex", "cp", "fbs", "restecg", "exang", "slope", "ca", "thal"]

@@ -6,18 +6,15 @@ Usage:  python src/evaluate.py --data data/heart.csv --model models/best_model.p
 import argparse
 import os
 import sys
+
 import joblib
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from src.data_preprocessing import load_data, get_train_test
+from sklearn.metrics import (average_precision_score, classification_report,
+                             confusion_matrix, roc_auc_score)
 
-from sklearn.metrics import (
-    classification_report,
-    confusion_matrix,
-    roc_auc_score,
-    average_precision_score,
-)
+from src.data_preprocessing import get_train_test, load_data
 
 
 def evaluate(data_path: str, model_path: str):

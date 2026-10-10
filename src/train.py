@@ -9,41 +9,33 @@ and saves the best model to models/best_model.pkl.
 """
 
 import argparse
+import json
 import os
 import sys
-import json
 
 import joblib
+import matplotlib
 import mlflow
 import mlflow.sklearn
 import numpy as np
 import pandas as pd
-import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    ConfusionMatrixDisplay,
-    RocCurveDisplay,
-)
+from sklearn.metrics import (ConfusionMatrixDisplay, RocCurveDisplay,
+                             accuracy_score, f1_score, precision_score,
+                             recall_score, roc_auc_score)
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.pipeline import Pipeline
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from src.data_preprocessing import load_data, get_train_test, FEATURE_COLS, TARGET_COL
-from src.feature_engineering import (
-    build_preprocessor,
-    add_interaction_features,
-    FEATURE_COLS as FE_FEATURES,
-)
+from src.data_preprocessing import (FEATURE_COLS, TARGET_COL, get_train_test,
+                                    load_data)
+from src.feature_engineering import FEATURE_COLS as FE_FEATURES
+from src.feature_engineering import (add_interaction_features,
+                                     build_preprocessor)
 
 MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
 PLOT_DIR = os.path.join(

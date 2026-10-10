@@ -5,19 +5,15 @@ Run: pytest tests/ -v
 
 import os
 import sys
-import pytest
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from src.data_preprocessing import (
-    split_features_target,
-    get_train_test,
-    FEATURE_COLS,
-    TARGET_COL,
-    NUMERICAL_COLS,
-    CATEGORICAL_COLS,
-)
+from src.data_preprocessing import (CATEGORICAL_COLS, FEATURE_COLS,
+                                    NUMERICAL_COLS, TARGET_COL, get_train_test,
+                                    split_features_target)
 
 
 @pytest.fixture
