@@ -11,8 +11,12 @@ import joblib
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from sklearn.metrics import (average_precision_score, classification_report,
-                             confusion_matrix, roc_auc_score)
+from sklearn.metrics import (
+    average_precision_score,
+    classification_report,
+    confusion_matrix,
+    roc_auc_score,
+)
 
 from src.data_preprocessing import get_train_test, load_data
 

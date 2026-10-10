@@ -16,8 +16,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from src.data_preprocessing import (CATEGORICAL_COLS, FEATURE_COLS,
-                                    NUMERICAL_COLS, TARGET_COL, load_data)
+from src.data_preprocessing import (
+    CATEGORICAL_COLS,
+    FEATURE_COLS,
+    NUMERICAL_COLS,
+    TARGET_COL,
+    load_data,
+)
 
 PLOT_DIR = os.path.join(os.path.dirname(__file__), "plots")
 os.makedirs(PLOT_DIR, exist_ok=True)
