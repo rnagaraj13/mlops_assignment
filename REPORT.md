@@ -2,6 +2,7 @@
 
 AIMLCZG523, Assignment 01  
 Repository: https://github.com/rnagaraj13/mlops_assignment  
+Deployed API: https://heart-disease-api-latest-o5fk.onrender.com/docs  
 Demo video: https://drive.google.com/file/d/1LeMUejI3-XW6p5oaU7D0DDnXtHtOdXiT/view?usp=sharing
 
 ## 1. What I built
@@ -240,7 +241,7 @@ minikube service heart-disease-api-svc -n heart-mlops
 
 The CI job sets the pull policy to `Never` after it has loaded that tag, so the runner does not try to pull from GHCR during the smoke test.
 
-Render is the public URL. It builds this Dockerfile from GitHub. The Actions job only calls the deploy hook. The Render service is the API. I am not putting MLflow or Grafana there.
+The public copy is https://heart-disease-api-latest-o5fk.onrender.com/docs . It builds this Dockerfile from GitHub. The Actions job only calls the deploy hook. The Render service is the API. I am not putting MLflow or Grafana there.
 
 ## 12. Logs and the dashboard
 
