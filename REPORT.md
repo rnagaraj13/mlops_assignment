@@ -1,7 +1,8 @@
 # Heart Disease Classifier: Training, Tracking, and a Small API
 
 AIMLCZG523, Assignment 01  
-Repository: https://github.com/rnagaraj13/mlops_assignment
+Repository: https://github.com/rnagaraj13/mlops_assignment  
+Demo video: https://drive.google.com/file/d/1LeMUejI3-XW6p5oaU7D0DDnXtHtOdXiT/view?usp=sharing
 
 ## 1. What I built
 
