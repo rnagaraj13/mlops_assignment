@@ -1,6 +1,4 @@
-"""
-Unit tests for model training pipeline.
-"""
+"""Preprocessor output and a quick fit of both models."""
 
 import numpy as np
 import pandas as pd
@@ -38,6 +36,15 @@ def tiny_df():
 
 
 class TestPreprocessor:
+    def test_derived_columns(self, tiny_df):
+        from src.feature_engineering import DerivedFeatures
+
+        X, _ = split_features_target(tiny_df)
+        transformed = DerivedFeatures().transform(X)
+        assert "age_thalach_ratio" in transformed.columns
+        assert "oldpeak_slope" in transformed.columns
+        assert len(transformed) == len(X)
+
     def test_output_shape(self, tiny_df):
         X, y = split_features_target(tiny_df)
         preprocessor = build_preprocessor()

@@ -1,11 +1,4 @@
-"""
-FastAPI serving application for Heart Disease prediction.
-
-Endpoints:
-  GET  /health        – liveness probe
-  GET  /metrics       – Prometheus-compatible plain-text metrics
-  POST /predict       – predict from JSON input, returns prediction + confidence
-"""
+"""Heart disease prediction API. POST /predict returns a class and a probability."""
 
 import logging
 import os
@@ -19,22 +12,21 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
-# ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger("heart-api")
 
-# ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="Heart Disease Prediction API",
     description="Predicts the probability of heart disease from patient health data.",
     version="1.0.0",
 )
 
-# ── Model loading ─────────────────────────────────────────────────────────────
-MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/best_model.pkl")
+# Docker sets MODEL_PATH. A local uvicorn run uses models/ in the repo.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+MODEL_PATH = os.getenv("MODEL_PATH", str(_REPO_ROOT / "models" / "best_model.pkl"))
 _model = None
 
 
@@ -48,7 +40,6 @@ def get_model():
     return _model
 
 
-# ── Prometheus-style counters (in-memory) ─────────────────────────────────────
 _counters = {
     "requests_total": 0,
     "requests_success": 0,
@@ -60,11 +51,10 @@ _latency_sum = 0.0
 _latency_count = 0
 
 
-# ── Pydantic schemas ──────────────────────────────────────────────────────────
 class PatientFeatures(BaseModel):
     age: float = Field(..., ge=0, le=120, description="Age in years")
     sex: int = Field(..., ge=0, le=1, description="0=female 1=male")
-    cp: int = Field(..., ge=0, le=3, description="Chest pain type (0-3)")
+    cp: int = Field(..., ge=1, le=4, description="Chest pain type (1-4, UCI coding)")
     trestbps: float = Field(..., ge=50, le=250, description="Resting blood pressure")
     chol: float = Field(..., ge=100, le=600, description="Serum cholesterol mg/dL")
     fbs: int = Field(..., ge=0, le=1, description="Fasting blood sugar >120 mg/dL")
@@ -72,10 +62,10 @@ class PatientFeatures(BaseModel):
     thalach: float = Field(..., ge=50, le=250, description="Max heart rate achieved")
     exang: int = Field(..., ge=0, le=1, description="Exercise-induced angina")
     oldpeak: float = Field(..., ge=0.0, le=10.0, description="ST depression")
-    slope: int = Field(..., ge=0, le=2, description="Slope of peak exercise ST")
-    ca: int = Field(..., ge=0, le=4, description="Number of major vessels (0-4)")
+    slope: int = Field(..., ge=1, le=3, description="Slope of peak exercise ST (1-3)")
+    ca: int = Field(..., ge=0, le=3, description="Number of major vessels (0-3)")
     thal: int = Field(
-        ..., ge=0, le=3, description="Thal (0=normal 1=fixed 2=reversible)"
+        ..., ge=3, le=7, description="Thalassemia (3=normal, 6=fixed, 7=reversible)"
     )
 
     model_config = {
@@ -83,7 +73,7 @@ class PatientFeatures(BaseModel):
             "example": {
                 "age": 54,
                 "sex": 1,
-                "cp": 0,
+                "cp": 1,
                 "trestbps": 122,
                 "chol": 286,
                 "fbs": 0,
@@ -91,9 +81,9 @@ class PatientFeatures(BaseModel):
                 "thalach": 116,
                 "exang": 1,
                 "oldpeak": 3.2,
-                "slope": 1,
-                "ca": 2,
-                "thal": 2,
+                "slope": 2,
+                "ca": 0,
+                "thal": 6,
             }
         }
     }
@@ -113,7 +103,6 @@ class BatchPredictionResponse(BaseModel):
     predictions: List[PredictionResponse]
 
 
-# ── Middleware – request logging ──────────────────────────────────────────────
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     global _latency_sum, _latency_count
@@ -130,7 +119,6 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-# ── Endpoints ─────────────────────────────────────────────────────────────────
 @app.get("/health", tags=["ops"])
 def health():
     """Liveness + readiness probe."""

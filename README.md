@@ -1,203 +1,133 @@
 # Heart Disease MLOps Pipeline
-> **AIMLCZG523 – Assignment 01**
 
-End-to-end MLOps solution: data ingestion → EDA → model training with MLflow → FastAPI serving → Docker → Kubernetes → CI/CD → Monitoring.
+AIMLCZG523 – Assignment 01
 
----
+Classifier for the UCI Cleveland heart-disease file. Training logs to a local MLflow folder. The API, Docker image, and Kubernetes manifests all load `models/best_model.pkl`. Render is an optional public copy of that same API.
 
-## Repository Layout
+Repository: https://github.com/rnagaraj13/mlops_assignment
 
-```
-heart-disease-mlops/
-├── data/
-│   ├── download_data.py       # Dataset download & cleaning script
-│   └── heart.csv              # Cleaned dataset (generated)
-├── notebooks/
-│   ├── eda.py                 # EDA script (outputs plots/)
-│   └── plots/                 # All EDA visualisations
-├── src/
-│   ├── data_preprocessing.py  # Load, split, encode
-│   ├── feature_engineering.py # ColumnTransformer preprocessor
-│   ├── train.py               # Train + MLflow logging
-│   └── evaluate.py            # Evaluation report
-├── api/
-│   └── app.py                 # FastAPI – /predict /health /metrics
-├── tests/
-│   ├── test_preprocessing.py
-│   ├── test_model.py
-│   └── test_api.py
-├── models/                    # Saved best_model.pkl (generated)
-├── .github/workflows/
-│   └── ci-cd.yml              # GitHub Actions pipeline
-├── k8s/
-│   ├── namespace.yaml
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   └── ingress.yaml
-├── monitoring/
-│   ├── prometheus.yml
-│   └── grafana/provisioning/  # Auto-provisioned Grafana datasource + dashboard
-├── docker-compose.yml
-├── Dockerfile
-└── requirements.txt
-```
+Use Python 3.11 or 3.12. The pinned NumPy wheel does not install on Python 3.14.
 
----
+## College lab setup
 
-## Quick Start (local)
-
-### 1 – Clone & install
+Run these from the repo root, in this order. Python 3.11 or 3.12. Stop `uvicorn` before the Docker commands if port 8000 is still taken.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/heart-disease-mlops.git
-cd heart-disease-mlops
-python -m venv .venv && source .venv/bin/activate
+git clone https://github.com/rnagaraj13/mlops_assignment.git
+cd mlops_assignment
+python3.11 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-```
 
-### 2 – Download dataset
-
-```bash
 python data/download_data.py
-```
-
-### 3 – Run EDA
-
-```bash
 python notebooks/eda.py
-# Plots saved to notebooks/plots/
-```
-
-### 4 – Train models (with MLflow)
-
-```bash
 python src/train.py --data data/heart.csv --experiment heart-disease
-# Open MLflow UI:
 mlflow ui --port 5000
 ```
 
-### 5 – Evaluate
+Leave `mlflow ui` running and open http://localhost:5000. That UI reads the local `mlruns/` directory created by training. It is the experiment log for the demo.
 
-```bash
-python src/evaluate.py --data data/heart.csv --model models/best_model.pkl
-```
-
-### 6 – Run unit tests
+In a second terminal, with the same virtual environment:
 
 ```bash
 pytest tests/ -v --cov=src --cov=api
+python src/evaluate.py --data data/heart.csv --model models/best_model.pkl
+uvicorn api.app:app --port 8000
 ```
 
-### 7 – Run API locally
+Sample prediction (first Cleveland row; original UCI codes):
 
 ```bash
-uvicorn api.app:app --reload --port 8000
-# Test:
 curl http://localhost:8000/health
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
-  -d '{"age":54,"sex":1,"cp":0,"trestbps":122,"chol":286,"fbs":0,"restecg":0,"thalach":116,"exang":1,"oldpeak":3.2,"slope":1,"ca":2,"thal":2}'
+  -d '{"age":63,"sex":1,"cp":1,"trestbps":145,"chol":233,"fbs":1,"restecg":2,"thalach":150,"exang":0,"oldpeak":2.3,"slope":3,"ca":0,"thal":6}'
 ```
 
-### 8 – Docker (full stack)
+Docker, after the model file exists:
 
 ```bash
-# Build & run API only
-docker build -t heart-disease-api .
-docker run -p 8000:8000 -v $(pwd)/models:/app/models heart-disease-api
+docker build -t heart-disease-api:latest .
+docker run --rm -p 8000:8000 heart-disease-api:latest
+```
 
-# Full stack: API + MLflow + Prometheus + Grafana
+Monitoring stack (API, Prometheus, Grafana). This does not start a second MLflow server:
+
+```bash
 docker compose up -d
-# API:        http://localhost:8000
-# MLflow:     http://localhost:5000
-# Prometheus: http://localhost:9090
-# Grafana:    http://localhost:3000  (admin / admin123)
 ```
 
-### 9 – Kubernetes (Minikube)
+- API: http://localhost:8000
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (admin / admin123)
+
+Kubernetes, when Minikube or Docker Desktop Kubernetes is installed:
 
 ```bash
+docker build -t heart-disease-api:latest .
 minikube start --driver=docker
-kubectl apply -f k8s/
-kubectl get pods -n heart-mlops
+minikube image load heart-disease-api:latest
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/ingress.yaml
+kubectl rollout status deployment/heart-disease-api -n heart-mlops
 minikube service heart-disease-api-svc -n heart-mlops
 ```
 
----
+The Service type is LoadBalancer. On Minikube, `minikube service` opens it. The Ingress has no hostname, so the Minikube ingress addon can route `/` without a certificate issuer.
 
-## CI/CD Pipeline
+`data/heart.csv` and `models/best_model.pkl` are already in the repository, so Docker can build even if the UCI download is blocked. Training overwrites the model and refreshes `mlruns/`.
 
-The GitHub Actions workflow (`.github/workflows/ci-cd.yml`) runs on every push to `main`:
+## Architecture
 
-| Stage | What it does |
-|-------|-------------|
-| **Lint** | Black, isort, Flake8 |
-| **Test** | pytest + coverage report |
-| **Train** | Downloads data, trains models, uploads artefacts |
-| **Build & Push** | Multi-stage Docker build → GHCR |
-| **Deploy** | `kubectl apply` to the configured cluster |
+![Heart disease pipeline](docs/architecture.png)
 
-Set the following repository secrets:
-- `KUBE_CONFIG` – base64-encoded kubeconfig for your cluster
+GitHub Actions (`.github/workflows/ci-cd.yml`) runs lint, tests, training, the Docker build, a Minikube smoke test, and the Render hook on `main`. Set `RENDER_DEPLOY_HOOK_URL` in the repo secrets if you want that hook to fire. Render builds the Dockerfile from git. It does not run MLflow.
 
----
-
-## API Reference
+## API
 
 | Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Liveness / readiness probe |
+| --- | --- | --- |
+| GET | `/health` | Loads the model. Returns 503 if the file is missing |
 | GET | `/metrics` | Prometheus text metrics |
-| POST | `/predict` | Single-patient prediction |
-| POST | `/predict/batch` | Batch predictions |
+| POST | `/predict` | One patient. Returns prediction, confidence, and label |
+| POST | `/predict/batch` | Several patients |
 | GET | `/docs` | Swagger UI |
 
-**Sample request:**
-```json
-POST /predict
-{
-  "age": 54, "sex": 1, "cp": 0, "trestbps": 122,
-  "chol": 286, "fbs": 0, "restecg": 0, "thalach": 116,
-  "exang": 1, "oldpeak": 3.2, "slope": 1, "ca": 2, "thal": 2
-}
-```
+Codes match the UCI Cleveland file, not the Kaggle 0-based recoding:
 
-**Sample response:**
-```json
-{
-  "prediction": 1,
-  "confidence": 0.82,
-  "label": "Heart Disease"
-}
-```
-
----
+| Field | Values |
+| --- | --- |
+| cp | 1 typical, 2 atypical, 3 non-anginal, 4 asymptomatic |
+| slope | 1 upsloping, 2 flat, 3 downsloping |
+| thal | 3 normal, 6 fixed defect, 7 reversible defect |
+| target | 0 no disease, 1 disease (original 1–4 collapsed to 1) |
 
 ## Models
 
-| Model | CV ROC-AUC | Notes |
-|-------|-----------|-------|
-| Logistic Regression | ~0.89 | Fast, interpretable baseline |
-| Random Forest | ~0.92 | Best performer; saved as `best_model.pkl` |
+Held-out split: 20% stratified, `random_state=42`, 60 rows. Grid search and the cross-validation metrics use only the training 237 rows.
 
-Preprocessor: `StandardScaler` on numerical features + `OneHotEncoder` on categorical features, wrapped in a single `sklearn.Pipeline`.
+| Model | Search | CV ROC-AUC | Held-out ROC-AUC | Held-out recall |
+| --- | --- | --- | --- | --- |
+| Logistic regression | `C` in {0.01, 0.1, 1, 10}. Best `C=1.0` | 0.904 | 0.916 | 0.643 |
+| Random forest | depth {4, 8, 12}, trees {100, 200}, min split {2, 5}. Best depth 4, 200 trees, min split 2 | 0.879 | 0.917 | 0.786 |
 
----
+I saved the random forest. Held-out ROC-AUC is 0.917 against 0.916 for logistic regression, and recall is 0.786 against 0.643. Cross-validation ROC-AUC actually preferred logistic regression (0.904 vs 0.879). Details are in `models/model_selection.json`.
 
-## Monitoring
-
-- **Prometheus** scrapes `/metrics` every 10 s  
-- **Grafana** dashboard `heart_api.json` is auto-provisioned and shows: total requests, success/error rates, average latency, prediction class distribution, and request-rate time series.
-
----
+The pickle is one pipeline: `age / thalach` and `oldpeak * slope`, then scaling, one-hot encoding, then the classifier. `/predict` still takes the 13 raw fields.
 
 ## Dataset
 
-- **Source:** UCI Machine Learning Repository – Heart Disease (Cleveland)  
-- **Features:** 13 clinical attributes (age, sex, chest pain type, blood pressure, cholesterol, …)  
-- **Target:** Binary – 0 = No Disease, 1 = Heart Disease  
-- **Size:** 303 rows after cleaning
+- Source: UCI Machine Learning Repository, Heart Disease, processed Cleveland file
+- Download: `python data/download_data.py` (uses `certifi` so a lab Python without system certificates can still fetch it)
+- 297 rows after dropping 6 rows with `?` missing values
+- Class counts: 160 no disease, 137 disease
 
----
+## Monitoring
 
-*AIMLCZG523 – Machine Learning Operations | Assignment 01*
+Prometheus scrapes `api:8000/metrics` every 10 seconds. Grafana loads `monitoring/grafana/provisioning/dashboards/heart_api.json` on startup: request count, success and error counts, average latency, prediction mix, and request rate.
+
+Request lines are also written to the API process log.
+
+Code lives in `data/`, `notebooks/`, `src/`, `api/`, and `tests/`. The saved model is `models/best_model.pkl`. Kubernetes YAML is in `k8s/`. Prometheus and Grafana config is in `monitoring/`. The write-up is `REPORT.md`.

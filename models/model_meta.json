@@ -1,0 +1,20 @@
+{
+  "model_name": "random_forest",
+  "roc_auc": 0.9174107142857143,
+  "recall": 0.7857142857142857,
+  "features": [
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal"
+  ]
+}

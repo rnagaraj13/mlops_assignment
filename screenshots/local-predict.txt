@@ -1,0 +1,2 @@
+{"status":"healthy","model":"loaded"}
+{"prediction":0,"confidence":0.4237971766635581,"label":"No Heart Disease"}

@@ -31,8 +31,8 @@ spec:
         fsGroup: 1001
       containers:
         - name: heart-api
-          image: ghcr.io/OWNER/heart-disease-api:IMAGE_TAG_PLACEHOLDER
-          imagePullPolicy: Always
+          image: heart-disease-api:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
               name: http
@@ -61,23 +61,3 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
             failureThreshold: 3
-          volumeMounts:
-            - name: model-storage
-              mountPath: /app/models
-              readOnly: true
-      volumes:
-        - name: model-storage
-          persistentVolumeClaim:
-            claimName: model-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: model-pvc
-  namespace: heart-mlops
-spec:
-  accessModes:
-    - ReadOnlyMany
-  resources:
-    requests:
-      storage: 500Mi

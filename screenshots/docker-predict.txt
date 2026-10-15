@@ -1,0 +1,7 @@
+GET /health
+{"status":"healthy","model":"loaded"}
+HTTP 200
+
+POST /predict
+{"prediction":0,"confidence":0.4237971766635581,"label":"No Heart Disease"}
+HTTP 200

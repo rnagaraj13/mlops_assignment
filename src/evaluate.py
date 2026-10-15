@@ -1,7 +1,4 @@
-"""
-Standalone evaluation script – loads the saved model and prints a full report.
-Usage:  python src/evaluate.py --data data/heart.csv --model models/best_model.pkl
-"""
+"""Score models/best_model.pkl on the held-out split."""
 
 import argparse
 import os

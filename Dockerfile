@@ -1,4 +1,4 @@
-# ── Stage 1: build / install dependencies ───────────────────────────────────
+# Stage 1: build / install dependencies
 FROM python:3.11-slim AS builder
 
 WORKDIR /build
@@ -11,14 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# ── Stage 2: runtime image ───────────────────────────────────────────────────
+# Stage 2: runtime image
 FROM python:3.11-slim AS runtime
 
-LABEL maintainer="bbalaj813@gmail.com"
-LABEL description="Heart Disease Prediction API"
-LABEL version="1.0.0"
+LABEL description="Heart disease prediction API"
 
-# Create non-root user
+# non-root user
 RUN addgroup --gid 1001 appgroup && \
     adduser  --uid 1001 --gid 1001 --no-create-home --disabled-password appuser
 

@@ -1,7 +1,4 @@
-"""
-Unit tests for data preprocessing utilities.
-Run: pytest tests/ -v
-"""
+"""Checks for the CSV split."""
 
 import numpy as np
 import pandas as pd

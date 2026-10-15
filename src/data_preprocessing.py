@@ -1,14 +1,7 @@
-"""
-Data preprocessing utilities for Heart Disease prediction.
-Handles loading, cleaning, encoding, and train/test splitting.
-"""
+"""Load the Cleveland CSV and make the train/test split."""
 
-import os
-
-import joblib
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
 
 FEATURE_COLS = [
     "age",
@@ -32,9 +25,8 @@ NUMERICAL_COLS = ["age", "trestbps", "chol", "thalach", "oldpeak"]
 
 
 def load_data(path: str) -> pd.DataFrame:
-    """Load CSV from *path*, ensuring correct dtypes."""
+    """Load the CSV and cast the category columns to int."""
     df = pd.read_csv(path)
-    # Cast categoricals to int for sklearn
     for col in CATEGORICAL_COLS:
         df[col] = df[col].astype(int)
     return df
@@ -53,27 +45,3 @@ def get_train_test(df: pd.DataFrame, test_size: float = 0.2, random_state: int =
     return train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
-
-
-def build_preprocessor() -> Pipeline:
-    """Return a fitted-ready StandardScaler pipeline for numerical columns."""
-    from sklearn.compose import ColumnTransformer
-    from sklearn.preprocessing import StandardScaler
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("num", StandardScaler(), NUMERICAL_COLS),
-        ],
-        remainder="passthrough",  # keeps categorical columns as-is
-    )
-    return preprocessor
-
-
-def save_preprocessor(preprocessor, path: str):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    joblib.dump(preprocessor, path)
-    print(f"Preprocessor saved to {path}")
-
-
-def load_preprocessor(path: str):
-    return joblib.load(path)

@@ -1,8 +1,4 @@
-"""
-Exploratory Data Analysis – Heart Disease UCI Dataset.
-Run:  python notebooks/eda.py
-Outputs plots to notebooks/plots/
-"""
+"""Write the EDA plots to notebooks/plots/."""
 
 import os
 import sys
@@ -46,7 +42,7 @@ def main():
     print(df.dtypes)
     print(df.describe())
 
-    # ── 1. Class Balance ──────────────────────────────────────────────────────
+    # 1. Class Balance
     fig, ax = plt.subplots(figsize=(5, 4))
     counts = df[TARGET_COL].value_counts()
     bars = ax.bar(
@@ -69,7 +65,7 @@ def main():
     ax.set_ylabel("Count")
     save(fig, "01_class_balance.png")
 
-    # ── 2. Numerical feature histograms ──────────────────────────────────────
+    # 2. Numerical feature histograms
     fig, axes = plt.subplots(2, 3, figsize=(14, 8))
     axes = axes.ravel()
     for i, col in enumerate(NUMERICAL_COLS):
@@ -86,7 +82,7 @@ def main():
     plt.tight_layout()
     save(fig, "02_numerical_histograms.png")
 
-    # ── 3. Correlation heatmap ────────────────────────────────────────────────
+    # 3. Correlation heatmap
     fig, ax = plt.subplots(figsize=(10, 8))
     corr = df[FEATURE_COLS + [TARGET_COL]].corr()
     mask = np.triu(np.ones_like(corr, dtype=bool))
@@ -105,7 +101,7 @@ def main():
     plt.tight_layout()
     save(fig, "03_correlation_heatmap.png")
 
-    # ── 4. Categorical feature counts ────────────────────────────────────────
+    # 4. Categorical feature counts
     fig, axes = plt.subplots(2, 4, figsize=(18, 9))
     axes = axes.ravel()
     for i, col in enumerate(CATEGORICAL_COLS):
@@ -125,7 +121,7 @@ def main():
     plt.tight_layout()
     save(fig, "04_categorical_vs_target.png")
 
-    # ── 5. Box plots numerical vs target ─────────────────────────────────────
+    # 5. Box plots numerical vs target
     fig, axes = plt.subplots(1, 5, figsize=(18, 5))
     for i, col in enumerate(NUMERICAL_COLS):
         df.boxplot(

@@ -12,7 +12,6 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  # ── Job 1: Lint & Static Analysis ─────────────────────────────────────────
   lint:
     name: Lint & Static Analysis
     runs-on: ubuntu-latest
@@ -26,7 +25,7 @@ jobs:
           cache: pip
 
       - name: Install linting tools
-        run: pip install flake8==7.4.1 black==26.10.1 isort==9.0.2 mypy==2.4.0
+        run: pip install flake8==7.4.1 black==26.10.1 isort==9.0.2
 
       - name: Run Black (formatting check)
         run: black --check --diff src/ api/ tests/
@@ -37,7 +36,6 @@ jobs:
       - name: Run Flake8 (style & errors)
         run: flake8 src/ api/ tests/ --max-line-length=100 --ignore=E203,W503
 
-  # ── Job 2: Unit Tests ──────────────────────────────────────────────────────
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -75,7 +73,6 @@ jobs:
           name: coverage-report
           path: coverage.xml
 
-  # ── Job 3: Model Training ──────────────────────────────────────────────────
   train:
     name: Model Training
     runs-on: ubuntu-latest
@@ -109,7 +106,6 @@ jobs:
           path: models/
           retention-days: 30
 
-  # ── Job 4: Docker Build & Push ─────────────────────────────────────────────
   build-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
@@ -154,7 +150,6 @@ jobs:
           curl -f http://localhost:8000/health || (docker logs test-api && exit 1)
           docker stop test-api && docker rm test-api
 
-  # ── Job 5: Deploy public API to Render ─────────────────────────────────────
   deploy-render:
     name: Deploy to Render
     runs-on: ubuntu-latest
@@ -166,7 +161,6 @@ jobs:
           DEPLOY_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: curl --fail --show-error --silent --request POST "$DEPLOY_URL"
 
-  # ── Job 6: Deploy to Kubernetes (Minikube in CI – no external cluster needed) ─
   deploy:
     name: Deploy to Kubernetes (Minikube)
     runs-on: ubuntu-latest
@@ -175,14 +169,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ── Download the trained model artifact ─────────────────────────────────
       - name: Download trained model
         uses: actions/download-artifact@v4
         with:
           name: trained-model
           path: models/
 
-      # ── Start Minikube on the GitHub Actions runner (no cluster required) ───
       - name: Start Minikube
         uses: medyagh/setup-minikube@master
         with:
@@ -190,36 +182,27 @@ jobs:
           kubernetes-version: v1.30.0
           driver: docker
 
-      # ── Load the locally-built Docker image into Minikube ───────────────────
       - name: Load Docker image into Minikube
         run: |
           docker build -t heart-disease-api:latest .
           minikube image load heart-disease-api:latest
 
-      # ── Patch deployment to use the local image (no registry pull needed) ───
-      - name: Patch deployment manifest for local image
+      # Manifest already points at heart-disease-api:latest. Never pull in CI.
+      - name: Use the image loaded into Minikube
         run: |
-          sed -i "s|image: ghcr.io/OWNER/heart-disease-api:IMAGE_TAG_PLACEHOLDER|image: heart-disease-api:latest|g" k8s/deployment.yaml
-          sed -i "s|imagePullPolicy: Always|imagePullPolicy: Never|g"            k8s/deployment.yaml
-          # Remove PVC dependency (not needed for CI smoke test)
-          sed -i "/persistentVolumeClaim/,+1d" k8s/deployment.yaml
-          sed -i "/volumeMounts/,+3d"          k8s/deployment.yaml
-          sed -i "/volumes:/,+3d"              k8s/deployment.yaml
+          sed -i "s|imagePullPolicy: IfNotPresent|imagePullPolicy: Never|g" k8s/deployment.yaml
 
-      # ── Apply manifests ──────────────────────────────────────────────────────
       - name: Apply Kubernetes manifests
         run: |
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
 
-      # ── Wait for pods to become Ready ────────────────────────────────────────
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/heart-disease-api \
             -n heart-mlops --timeout=3m
 
-      # ── Smoke-test the running pod ───────────────────────────────────────────
       - name: Smoke-test API via kubectl port-forward
         run: |
           kubectl port-forward svc/heart-disease-api-svc 8080:80 \
@@ -228,9 +211,8 @@ jobs:
           curl -f http://localhost:8080/health
           curl -f -X POST http://localhost:8080/predict \
             -H "Content-Type: application/json" \
-            -d '{"age":54,"sex":1,"cp":0,"trestbps":122,"chol":286,"fbs":0,"restecg":0,"thalach":116,"exang":1,"oldpeak":3.2,"slope":1,"ca":2,"thal":2}'
+            -d '{"age":63,"sex":1,"cp":1,"trestbps":145,"chol":233,"fbs":1,"restecg":2,"thalach":150,"exang":0,"oldpeak":2.3,"slope":3,"ca":0,"thal":6}'
 
-      # ── Print cluster state (good for assignment screenshots) ────────────────
       - name: Show cluster state
         run: |
           echo "=== Pods ==="

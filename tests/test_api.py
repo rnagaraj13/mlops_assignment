@@ -1,6 +1,4 @@
-"""
-Integration tests for the FastAPI app (uses TestClient – no real model needed).
-"""
+"""API tests. The model is a fake so these do not need the pickle."""
 
 from unittest.mock import MagicMock, patch
 
@@ -11,7 +9,7 @@ from fastapi.testclient import TestClient
 SAMPLE_PATIENT = {
     "age": 54,
     "sex": 1,
-    "cp": 0,
+    "cp": 1,
     "trestbps": 122,
     "chol": 286,
     "fbs": 0,
@@ -19,9 +17,9 @@ SAMPLE_PATIENT = {
     "thalach": 116,
     "exang": 1,
     "oldpeak": 3.2,
-    "slope": 1,
-    "ca": 2,
-    "thal": 2,
+    "slope": 2,
+    "ca": 0,
+    "thal": 6,
 }
 
 

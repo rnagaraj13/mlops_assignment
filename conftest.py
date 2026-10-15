@@ -1,7 +1,4 @@
-"""
-Root conftest.py – adds project root to sys.path so all imports resolve
-regardless of where pytest is invoked from.
-"""
+"""Put the repo root on sys.path for pytest."""
 
 import os
 import sys

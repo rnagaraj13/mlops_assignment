@@ -11,6 +11,7 @@ venv/
 # ML artefacts
 mlruns/
 mlflow.db
+.report_build/
 
 # Data (download via script)
 data/heart_raw.csv
@@ -30,6 +31,3 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
-
-# Screenshots
-screenshots/

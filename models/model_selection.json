@@ -1,0 +1,106 @@
+{
+  "selected_model": "random_forest",
+  "reason": "Selected random_forest with held-out ROC-AUC 0.9174 and recall 0.7857. The other candidate, logistic_regression, scored ROC-AUC 0.9163 and recall 0.6429. I ranked on held-out ROC-AUC, then recall, because the AUC values were almost the same and a missed disease case matters more.",
+  "features": [
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal"
+  ],
+  "derived_features": [
+    "age_thalach_ratio",
+    "oldpeak_slope"
+  ],
+  "split": {
+    "test_size": 0.2,
+    "stratified": true,
+    "random_state": 42
+  },
+  "candidates": [
+    {
+      "model_name": "logistic_regression",
+      "run_id": "ded312e8821247a6993c6b03f1dcbf49",
+      "best_params": {
+        "classifier__C": 1.0
+      },
+      "search_best_cv_roc_auc": 0.9038081918081918,
+      "cv": {
+        "accuracy": {
+          "mean": 0.8307624113475178,
+          "std": 0.07560887432149198
+        },
+        "precision": {
+          "mean": 0.8348608895977317,
+          "std": 0.08754598279062388
+        },
+        "recall": {
+          "mean": 0.7965367965367965,
+          "std": 0.13493028030743465
+        },
+        "f1": {
+          "mean": 0.8087369463676083,
+          "std": 0.08873765185548124
+        },
+        "roc_auc": {
+          "mean": 0.9038081918081918,
+          "std": 0.06775088207377397
+        }
+      },
+      "held_out": {
+        "test_accuracy": 0.7833333333333333,
+        "test_precision": 0.8571428571428571,
+        "test_recall": 0.6428571428571429,
+        "test_f1": 0.7346938775510204,
+        "test_roc_auc": 0.9162946428571428
+      }
+    },
+    {
+      "model_name": "random_forest",
+      "run_id": "34683af47807434f893a176572572e4c",
+      "best_params": {
+        "classifier__max_depth": 4,
+        "classifier__min_samples_split": 2,
+        "classifier__n_estimators": 200
+      },
+      "search_best_cv_roc_auc": 0.8788724608724608,
+      "cv": {
+        "accuracy": {
+          "mean": 0.7845744680851064,
+          "std": 0.06429597292364804
+        },
+        "precision": {
+          "mean": 0.8051587301587302,
+          "std": 0.10819879429980479
+        },
+        "recall": {
+          "mean": 0.7329004329004328,
+          "std": 0.11605123236236486
+        },
+        "f1": {
+          "mean": 0.7570062111801242,
+          "std": 0.06320684887238998
+        },
+        "roc_auc": {
+          "mean": 0.8788724608724608,
+          "std": 0.07513137867051192
+        }
+      },
+      "held_out": {
+        "test_accuracy": 0.8166666666666667,
+        "test_precision": 0.8148148148148148,
+        "test_recall": 0.7857142857142857,
+        "test_f1": 0.8,
+        "test_roc_auc": 0.9174107142857143
+      }
+    }
+  ]
+}

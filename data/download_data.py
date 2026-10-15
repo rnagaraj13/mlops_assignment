@@ -1,14 +1,16 @@
-"""
-Download Heart Disease UCI Dataset from UCI ML Repository.
-Usage: python download_data.py
-"""
+"""Download the Cleveland file and write data/heart.csv."""
 
 import os
+import ssl
 import urllib.request
 
+import certifi
 import pandas as pd
 
-DATASET_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+DATASET_URL = (
+    "https://archive.ics.uci.edu/ml/machine-learning-databases/"
+    "heart-disease/processed.cleveland.data"
+)
 
 COLUMNS = [
     "age",
@@ -31,11 +33,16 @@ OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "heart.csv")
 
 
 def download_and_clean():
-    print(f"Downloading dataset from UCI repository...")
+    print("Downloading dataset from UCI repository...")
     raw_path = OUTPUT_PATH.replace(".csv", "_raw.csv")
 
-    # Download raw file
-    urllib.request.urlretrieve(DATASET_URL, raw_path)
+    # certifi keeps the download working on lab machines whose Python
+    # install does not have the system certificate store wired up.
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+    with urllib.request.urlopen(DATASET_URL, context=ssl_context) as response:
+        payload = response.read()
+    with open(raw_path, "wb") as raw_file:
+        raw_file.write(payload)
     print(f"Raw file saved to {raw_path}")
 
     # Load and assign column names

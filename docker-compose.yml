@@ -1,7 +1,5 @@
-version: "3.9"
-
 services:
-  # ── Heart Disease API ──────────────────────────────────────────────────────
+  # Heart Disease API
   api:
     build:
       context: .
@@ -23,8 +21,11 @@ services:
     networks:
       - monitoring
 
-  # ── MLflow Tracking Server ─────────────────────────────────────────────────
+  # Optional remote tracking server. Training does not use it.
+  # Lab demo: run `mlflow ui --port 5000` against the local mlruns/ folder.
+  # Start this service only with: docker compose --profile tracking-server up
   mlflow:
+    profiles: ["tracking-server"]
     image: ghcr.io/mlflow/mlflow:v2.13.0
     container_name: mlflow-server
     ports:
@@ -40,7 +41,7 @@ services:
     networks:
       - monitoring
 
-  # ── Prometheus ─────────────────────────────────────────────────────────────
+  # Prometheus
   prometheus:
     image: prom/prometheus:v2.51.0
     container_name: prometheus
@@ -54,7 +55,7 @@ services:
     networks:
       - monitoring
 
-  # ── Grafana ────────────────────────────────────────────────────────────────
+  # Grafana
   grafana:
     image: grafana/grafana:10.4.0
     container_name: grafana
